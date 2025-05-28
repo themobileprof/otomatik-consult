@@ -1,6 +1,5 @@
-
 import React from 'react';
-import { Cloud, Github, Server, Database, Docker, Globe, Search } from 'lucide-react';
+import { Cloud, Github, Server, Database, Container, Globe, Search } from 'lucide-react';
 
 const Services = () => {
   const services = [
@@ -30,7 +29,7 @@ const Services = () => {
       description: "Safe database setup, migration, and optimization for peak performance"
     },
     {
-      icon: Docker,
+      icon: Container,
       title: "Docker Containerization",
       description: "Container orchestration and deployment on virtual machines"
     },
