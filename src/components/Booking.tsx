@@ -4,10 +4,31 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Badge } from '@/components/ui/badge';
-import { Clock, Calendar, Gift, DollarSign } from 'lucide-react';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
+import { Calendar } from '@/components/ui/calendar';
+import { Clock, Calendar as CalendarIcon, Gift, DollarSign } from 'lucide-react';
+import { format } from 'date-fns';
+import { cn } from '@/lib/utils';
 
 const Booking = () => {
   const [selectedTab, setSelectedTab] = useState('free');
+  const [selectedDate, setSelectedDate] = useState<Date>();
+  const [isDialogOpen, setIsDialogOpen] = useState(false);
+  const [bookingType, setBookingType] = useState<'free' | 'paid'>('free');
+
+  const handleBookingClick = (type: 'free' | 'paid') => {
+    setBookingType(type);
+    setIsDialogOpen(true);
+  };
+
+  const handleDateSelect = (date: Date | undefined) => {
+    setSelectedDate(date);
+    if (date) {
+      // Here you would typically handle the booking logic
+      console.log(`Booking ${bookingType} session for:`, format(date, 'PPP'));
+      setIsDialogOpen(false);
+    }
+  };
 
   return (
     <section id="booking" className="py-24 bg-white">
@@ -53,14 +74,44 @@ const Booking = () => {
                       <span className="text-slate-700">30 minutes duration</span>
                     </div>
                     <div className="flex items-center gap-3">
-                      <Calendar className="w-5 h-5 text-emerald-600" />
+                      <CalendarIcon className="w-5 h-5 text-emerald-600" />
                       <span className="text-slate-700">Monday - Friday</span>
                     </div>
                   </div>
                   <div className="text-center pt-6">
-                    <Button size="lg" className="bg-gradient-to-r from-emerald-500 to-green-600 hover:from-emerald-600 hover:to-green-700 text-white px-12 py-4 text-lg font-semibold rounded-xl shadow-lg hover:shadow-xl transition-all duration-300">
-                      Book Free Session
-                    </Button>
+                    <Dialog open={isDialogOpen && bookingType === 'free'} onOpenChange={(open) => {
+                      if (bookingType === 'free') setIsDialogOpen(open);
+                    }}>
+                      <DialogTrigger asChild>
+                        <Button 
+                          size="lg" 
+                          className="bg-gradient-to-r from-emerald-500 to-green-600 hover:from-emerald-600 hover:to-green-700 text-white px-12 py-4 text-lg font-semibold rounded-xl shadow-lg hover:shadow-xl transition-all duration-300"
+                          onClick={() => handleBookingClick('free')}
+                        >
+                          Book Free Session
+                        </Button>
+                      </DialogTrigger>
+                      <DialogContent className="sm:max-w-md">
+                        <DialogHeader>
+                          <DialogTitle className="text-center text-xl font-bold">
+                            Schedule Your Free Consultation
+                          </DialogTitle>
+                        </DialogHeader>
+                        <div className="flex justify-center">
+                          <Calendar
+                            mode="single"
+                            selected={selectedDate}
+                            onSelect={handleDateSelect}
+                            disabled={(date) => {
+                              const day = date.getDay();
+                              return day === 0 || day === 6 || date < new Date();
+                            }}
+                            initialFocus
+                            className={cn("p-3 pointer-events-auto")}
+                          />
+                        </div>
+                      </DialogContent>
+                    </Dialog>
                   </div>
                 </CardContent>
               </Card>
@@ -91,7 +142,7 @@ const Booking = () => {
                       <span className="text-slate-700">9AM - 5PM availability</span>
                     </div>
                     <div className="flex items-center gap-3">
-                      <Calendar className="w-5 h-5 text-blue-600" />
+                      <CalendarIcon className="w-5 h-5 text-blue-600" />
                       <span className="text-slate-700">Monday - Friday</span>
                     </div>
                   </div>
@@ -105,9 +156,39 @@ const Booking = () => {
                     </ul>
                   </div>
                   <div className="text-center pt-6">
-                    <Button size="lg" className="bg-gradient-to-r from-blue-500 to-indigo-600 hover:from-blue-600 hover:to-indigo-700 text-white px-12 py-4 text-lg font-semibold rounded-xl shadow-lg hover:shadow-xl transition-all duration-300">
-                      Schedule Paid Session
-                    </Button>
+                    <Dialog open={isDialogOpen && bookingType === 'paid'} onOpenChange={(open) => {
+                      if (bookingType === 'paid') setIsDialogOpen(open);
+                    }}>
+                      <DialogTrigger asChild>
+                        <Button 
+                          size="lg" 
+                          className="bg-gradient-to-r from-blue-500 to-indigo-600 hover:from-blue-600 hover:to-indigo-700 text-white px-12 py-4 text-lg font-semibold rounded-xl shadow-lg hover:shadow-xl transition-all duration-300"
+                          onClick={() => handleBookingClick('paid')}
+                        >
+                          Schedule Paid Session
+                        </Button>
+                      </DialogTrigger>
+                      <DialogContent className="sm:max-w-md">
+                        <DialogHeader>
+                          <DialogTitle className="text-center text-xl font-bold">
+                            Schedule Your Paid Session
+                          </DialogTitle>
+                        </DialogHeader>
+                        <div className="flex justify-center">
+                          <Calendar
+                            mode="single"
+                            selected={selectedDate}
+                            onSelect={handleDateSelect}
+                            disabled={(date) => {
+                              const day = date.getDay();
+                              return day === 0 || day === 6 || date < new Date();
+                            }}
+                            initialFocus
+                            className={cn("p-3 pointer-events-auto")}
+                          />
+                        </div>
+                      </DialogContent>
+                    </Dialog>
                   </div>
                 </CardContent>
               </Card>
