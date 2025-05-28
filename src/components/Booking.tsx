@@ -13,20 +13,37 @@ import { cn } from '@/lib/utils';
 const Booking = () => {
   const [selectedTab, setSelectedTab] = useState('free');
   const [selectedDate, setSelectedDate] = useState<Date>();
+  const [selectedTime, setSelectedTime] = useState<string>('');
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [bookingType, setBookingType] = useState<'free' | 'paid'>('free');
 
+  // Available time slots
+  const timeSlots = [
+    '9:00 AM', '10:00 AM', '11:00 AM', '12:00 PM',
+    '1:00 PM', '2:00 PM', '3:00 PM', '4:00 PM', '5:00 PM'
+  ];
+
   const handleBookingClick = (type: 'free' | 'paid') => {
     setBookingType(type);
+    setSelectedDate(undefined);
+    setSelectedTime('');
     setIsDialogOpen(true);
   };
 
   const handleDateSelect = (date: Date | undefined) => {
     setSelectedDate(date);
-    if (date) {
-      // Here you would typically handle the booking logic
-      console.log(`Booking ${bookingType} session for:`, format(date, 'PPP'));
+  };
+
+  const handleTimeSelect = (time: string) => {
+    setSelectedTime(time);
+  };
+
+  const handleConfirmBooking = () => {
+    if (selectedDate && selectedTime) {
+      console.log(`Booking ${bookingType} session for:`, format(selectedDate, 'PPP'), 'at', selectedTime);
       setIsDialogOpen(false);
+      setSelectedDate(undefined);
+      setSelectedTime('');
     }
   };
 
@@ -91,25 +108,57 @@ const Booking = () => {
                           Book Free Session
                         </Button>
                       </DialogTrigger>
-                      <DialogContent className="sm:max-w-md">
+                      <DialogContent className="sm:max-w-2xl">
                         <DialogHeader>
                           <DialogTitle className="text-center text-xl font-bold">
                             Schedule Your Free Consultation
                           </DialogTitle>
                         </DialogHeader>
-                        <div className="flex justify-center">
-                          <Calendar
-                            mode="single"
-                            selected={selectedDate}
-                            onSelect={handleDateSelect}
-                            disabled={(date) => {
-                              const day = date.getDay();
-                              return day === 0 || day === 6 || date < new Date();
-                            }}
-                            initialFocus
-                            className={cn("p-3 pointer-events-auto")}
-                          />
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                          <div>
+                            <h3 className="text-lg font-semibold mb-3">Select Date</h3>
+                            <Calendar
+                              mode="single"
+                              selected={selectedDate}
+                              onSelect={handleDateSelect}
+                              disabled={(date) => {
+                                const day = date.getDay();
+                                return day === 0 || day === 6 || date < new Date();
+                              }}
+                              initialFocus
+                              className={cn("p-3 pointer-events-auto")}
+                            />
+                          </div>
+                          <div>
+                            <h3 className="text-lg font-semibold mb-3">Select Time</h3>
+                            <div className="grid grid-cols-2 gap-2 max-h-64 overflow-y-auto">
+                              {timeSlots.map((time) => (
+                                <Button
+                                  key={time}
+                                  variant={selectedTime === time ? "default" : "outline"}
+                                  size="sm"
+                                  onClick={() => handleTimeSelect(time)}
+                                  className="text-sm"
+                                >
+                                  {time}
+                                </Button>
+                              ))}
+                            </div>
+                          </div>
                         </div>
+                        {selectedDate && selectedTime && (
+                          <div className="text-center pt-4 border-t">
+                            <p className="text-sm text-slate-600 mb-4">
+                              You selected: {format(selectedDate, 'PPP')} at {selectedTime}
+                            </p>
+                            <Button 
+                              onClick={handleConfirmBooking}
+                              className="bg-emerald-500 hover:bg-emerald-600 text-white"
+                            >
+                              Confirm Booking
+                            </Button>
+                          </div>
+                        )}
                       </DialogContent>
                     </Dialog>
                   </div>
@@ -168,25 +217,57 @@ const Booking = () => {
                           Schedule Paid Session
                         </Button>
                       </DialogTrigger>
-                      <DialogContent className="sm:max-w-md">
+                      <DialogContent className="sm:max-w-2xl">
                         <DialogHeader>
                           <DialogTitle className="text-center text-xl font-bold">
                             Schedule Your Paid Session
                           </DialogTitle>
                         </DialogHeader>
-                        <div className="flex justify-center">
-                          <Calendar
-                            mode="single"
-                            selected={selectedDate}
-                            onSelect={handleDateSelect}
-                            disabled={(date) => {
-                              const day = date.getDay();
-                              return day === 0 || day === 6 || date < new Date();
-                            }}
-                            initialFocus
-                            className={cn("p-3 pointer-events-auto")}
-                          />
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                          <div>
+                            <h3 className="text-lg font-semibold mb-3">Select Date</h3>
+                            <Calendar
+                              mode="single"
+                              selected={selectedDate}
+                              onSelect={handleDateSelect}
+                              disabled={(date) => {
+                                const day = date.getDay();
+                                return day === 0 || day === 6 || date < new Date();
+                              }}
+                              initialFocus
+                              className={cn("p-3 pointer-events-auto")}
+                            />
+                          </div>
+                          <div>
+                            <h3 className="text-lg font-semibold mb-3">Select Time</h3>
+                            <div className="grid grid-cols-2 gap-2 max-h-64 overflow-y-auto">
+                              {timeSlots.map((time) => (
+                                <Button
+                                  key={time}
+                                  variant={selectedTime === time ? "default" : "outline"}
+                                  size="sm"
+                                  onClick={() => handleTimeSelect(time)}
+                                  className="text-sm"
+                                >
+                                  {time}
+                                </Button>
+                              ))}
+                            </div>
+                          </div>
                         </div>
+                        {selectedDate && selectedTime && (
+                          <div className="text-center pt-4 border-t">
+                            <p className="text-sm text-slate-600 mb-4">
+                              You selected: {format(selectedDate, 'PPP')} at {selectedTime}
+                            </p>
+                            <Button 
+                              onClick={handleConfirmBooking}
+                              className="bg-blue-500 hover:bg-blue-600 text-white"
+                            >
+                              Confirm Booking
+                            </Button>
+                          </div>
+                        )}
                       </DialogContent>
                     </Dialog>
                   </div>
