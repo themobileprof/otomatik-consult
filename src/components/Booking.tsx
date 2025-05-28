@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -167,13 +168,13 @@ const Booking = () => {
                           Book Free Session
                         </Button>
                       </DialogTrigger>
-                      <DialogContent className="sm:max-w-2xl">
+                      <DialogContent className="sm:max-w-4xl">
                         <DialogHeader>
                           <DialogTitle className="text-center text-xl font-bold">
                             Schedule Your Free Consultation
                           </DialogTitle>
                         </DialogHeader>
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
                           <div>
                             <h3 className="text-lg font-semibold mb-3">Select Date</h3>
                             <Calendar
@@ -212,9 +213,9 @@ const Booking = () => {
                             </p>
                             <Button 
                               onClick={handleConfirmBooking}
-                              className="bg-emerald-500 hover:bg-emerald-600 text-white"
+                              className="bg-emerald-500 hover:bg-emerald-600 text-white px-8 py-2"
                             >
-                              Confirm Booking
+                              Book Now
                             </Button>
                           </div>
                         )}
@@ -276,13 +277,13 @@ const Booking = () => {
                           Schedule Paid Session
                         </Button>
                       </DialogTrigger>
-                      <DialogContent className="sm:max-w-3xl">
+                      <DialogContent className="sm:max-w-5xl">
                         <DialogHeader>
                           <DialogTitle className="text-center text-xl font-bold">
                             Schedule Your Paid Session
                           </DialogTitle>
                         </DialogHeader>
-                        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                        <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
                           <div>
                             <h3 className="text-lg font-semibold mb-3">Select Date</h3>
                             <Calendar
@@ -352,9 +353,9 @@ const Booking = () => {
                             </div>
                             <Button 
                               onClick={handleConfirmBooking}
-                              className="bg-blue-500 hover:bg-blue-600 text-white"
+                              className="bg-blue-500 hover:bg-blue-600 text-white px-8 py-2"
                             >
-                              Confirm Booking
+                              Book Now
                             </Button>
                           </div>
                         )}
