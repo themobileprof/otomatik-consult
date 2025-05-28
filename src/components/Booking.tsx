@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -14,11 +13,19 @@ const Booking = () => {
   const [selectedTab, setSelectedTab] = useState('free');
   const [selectedDate, setSelectedDate] = useState<Date>();
   const [selectedTime, setSelectedTime] = useState<string>('');
+  const [selectedEndTime, setSelectedEndTime] = useState<string>('');
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [bookingType, setBookingType] = useState<'free' | 'paid'>('free');
 
-  // Available time slots
-  const timeSlots = [
+  // Available time slots for free sessions (30-minute slots)
+  const freeTimeSlots = [
+    '9:00 AM', '9:30 AM', '10:00 AM', '10:30 AM', '11:00 AM', '11:30 AM',
+    '12:00 PM', '12:30 PM', '1:00 PM', '1:30 PM', '2:00 PM', '2:30 PM',
+    '3:00 PM', '3:30 PM', '4:00 PM', '4:30 PM'
+  ];
+
+  // Available time slots for paid sessions (hourly slots)
+  const paidTimeSlots = [
     '9:00 AM', '10:00 AM', '11:00 AM', '12:00 PM',
     '1:00 PM', '2:00 PM', '3:00 PM', '4:00 PM', '5:00 PM'
   ];
@@ -27,6 +34,7 @@ const Booking = () => {
     setBookingType(type);
     setSelectedDate(undefined);
     setSelectedTime('');
+    setSelectedEndTime('');
     setIsDialogOpen(true);
   };
 
@@ -36,15 +44,66 @@ const Booking = () => {
 
   const handleTimeSelect = (time: string) => {
     setSelectedTime(time);
+    if (bookingType === 'paid') {
+      setSelectedEndTime(''); // Reset end time when start time changes
+    }
+  };
+
+  const handleEndTimeSelect = (endTime: string) => {
+    setSelectedEndTime(endTime);
+  };
+
+  const getAvailableEndTimes = () => {
+    if (!selectedTime || bookingType === 'free') return [];
+    
+    const startIndex = paidTimeSlots.indexOf(selectedTime);
+    if (startIndex === -1) return [];
+    
+    // Return all times after the selected start time
+    return paidTimeSlots.slice(startIndex + 1);
+  };
+
+  const calculateDuration = () => {
+    if (bookingType === 'free') return '30 minutes';
+    if (!selectedTime || !selectedEndTime) return '';
+    
+    const startIndex = paidTimeSlots.indexOf(selectedTime);
+    const endIndex = paidTimeSlots.indexOf(selectedEndTime);
+    const hours = endIndex - startIndex;
+    
+    return `${hours} hour${hours > 1 ? 's' : ''}`;
+  };
+
+  const calculateCost = () => {
+    if (bookingType === 'free') return 'Free';
+    if (!selectedTime || !selectedEndTime) return '';
+    
+    const startIndex = paidTimeSlots.indexOf(selectedTime);
+    const endIndex = paidTimeSlots.indexOf(selectedEndTime);
+    const hours = endIndex - startIndex;
+    
+    return `$${hours * 75}`;
   };
 
   const handleConfirmBooking = () => {
     if (selectedDate && selectedTime) {
-      console.log(`Booking ${bookingType} session for:`, format(selectedDate, 'PPP'), 'at', selectedTime);
+      if (bookingType === 'free') {
+        console.log(`Booking free 30-minute session for:`, format(selectedDate, 'PPP'), 'at', selectedTime);
+      } else if (selectedEndTime) {
+        console.log(`Booking paid session for:`, format(selectedDate, 'PPP'), 'from', selectedTime, 'to', selectedEndTime);
+      }
       setIsDialogOpen(false);
       setSelectedDate(undefined);
       setSelectedTime('');
+      setSelectedEndTime('');
     }
+  };
+
+  const isBookingValid = () => {
+    if (bookingType === 'free') {
+      return selectedDate && selectedTime;
+    }
+    return selectedDate && selectedTime && selectedEndTime;
   };
 
   return (
@@ -130,9 +189,9 @@ const Booking = () => {
                             />
                           </div>
                           <div>
-                            <h3 className="text-lg font-semibold mb-3">Select Time</h3>
+                            <h3 className="text-lg font-semibold mb-3">Select Time (30 min slots)</h3>
                             <div className="grid grid-cols-2 gap-2 max-h-64 overflow-y-auto">
-                              {timeSlots.map((time) => (
+                              {freeTimeSlots.map((time) => (
                                 <Button
                                   key={time}
                                   variant={selectedTime === time ? "default" : "outline"}
@@ -146,10 +205,10 @@ const Booking = () => {
                             </div>
                           </div>
                         </div>
-                        {selectedDate && selectedTime && (
+                        {isBookingValid() && (
                           <div className="text-center pt-4 border-t">
                             <p className="text-sm text-slate-600 mb-4">
-                              You selected: {format(selectedDate, 'PPP')} at {selectedTime}
+                              You selected: {format(selectedDate!, 'PPP')} at {selectedTime} (30 minutes)
                             </p>
                             <Button 
                               onClick={handleConfirmBooking}
@@ -188,7 +247,7 @@ const Booking = () => {
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                     <div className="flex items-center gap-3">
                       <Clock className="w-5 h-5 text-blue-600" />
-                      <span className="text-slate-700">9AM - 5PM availability</span>
+                      <span className="text-slate-700">Select time range</span>
                     </div>
                     <div className="flex items-center gap-3">
                       <CalendarIcon className="w-5 h-5 text-blue-600" />
@@ -198,7 +257,7 @@ const Booking = () => {
                   <div className="bg-white rounded-xl p-6 border border-blue-100">
                     <h4 className="font-semibold text-slate-900 mb-3">What's Included:</h4>
                     <ul className="space-y-2 text-slate-600">
-                      <li>• 1-hour gap between sessions for preparation</li>
+                      <li>• Flexible duration (1-8 hours)</li>
                       <li>• Direct access to senior engineers</li>
                       <li>• Follow-up documentation included</li>
                       <li>• Implementation guidance</li>
@@ -217,13 +276,13 @@ const Booking = () => {
                           Schedule Paid Session
                         </Button>
                       </DialogTrigger>
-                      <DialogContent className="sm:max-w-2xl">
+                      <DialogContent className="sm:max-w-3xl">
                         <DialogHeader>
                           <DialogTitle className="text-center text-xl font-bold">
                             Schedule Your Paid Session
                           </DialogTitle>
                         </DialogHeader>
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                           <div>
                             <h3 className="text-lg font-semibold mb-3">Select Date</h3>
                             <Calendar
@@ -239,9 +298,9 @@ const Booking = () => {
                             />
                           </div>
                           <div>
-                            <h3 className="text-lg font-semibold mb-3">Select Time</h3>
-                            <div className="grid grid-cols-2 gap-2 max-h-64 overflow-y-auto">
-                              {timeSlots.map((time) => (
+                            <h3 className="text-lg font-semibold mb-3">Start Time</h3>
+                            <div className="grid grid-cols-1 gap-2 max-h-64 overflow-y-auto">
+                              {paidTimeSlots.map((time) => (
                                 <Button
                                   key={time}
                                   variant={selectedTime === time ? "default" : "outline"}
@@ -254,12 +313,43 @@ const Booking = () => {
                               ))}
                             </div>
                           </div>
+                          <div>
+                            <h3 className="text-lg font-semibold mb-3">End Time</h3>
+                            <div className="grid grid-cols-1 gap-2 max-h-64 overflow-y-auto">
+                              {selectedTime ? (
+                                getAvailableEndTimes().map((time) => (
+                                  <Button
+                                    key={time}
+                                    variant={selectedEndTime === time ? "default" : "outline"}
+                                    size="sm"
+                                    onClick={() => handleEndTimeSelect(time)}
+                                    className="text-sm"
+                                  >
+                                    {time}
+                                  </Button>
+                                ))
+                              ) : (
+                                <p className="text-sm text-slate-500 text-center">Select start time first</p>
+                              )}
+                            </div>
+                          </div>
                         </div>
-                        {selectedDate && selectedTime && (
+                        {isBookingValid() && (
                           <div className="text-center pt-4 border-t">
-                            <p className="text-sm text-slate-600 mb-4">
-                              You selected: {format(selectedDate, 'PPP')} at {selectedTime}
-                            </p>
+                            <div className="bg-blue-50 rounded-lg p-4 mb-4">
+                              <p className="text-sm text-slate-600 mb-2">
+                                <strong>Date:</strong> {format(selectedDate!, 'PPP')}
+                              </p>
+                              <p className="text-sm text-slate-600 mb-2">
+                                <strong>Time:</strong> {selectedTime} - {selectedEndTime}
+                              </p>
+                              <p className="text-sm text-slate-600 mb-2">
+                                <strong>Duration:</strong> {calculateDuration()}
+                              </p>
+                              <p className="text-lg font-semibold text-blue-600">
+                                <strong>Total Cost:</strong> {calculateCost()}
+                              </p>
+                            </div>
                             <Button 
                               onClick={handleConfirmBooking}
                               className="bg-blue-500 hover:bg-blue-600 text-white"
