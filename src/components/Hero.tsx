@@ -30,7 +30,7 @@ const Hero = () => {
           
           <p className="text-xl lg:text-2xl text-blue-100 mb-12 max-w-3xl mx-auto leading-relaxed">
             Transform your infrastructure with expert guidance. From cloud migrations to deployment automation, 
-            we help you build scalable, production-ready systems.
+            we help you setup and migrate to more affordable, scalable, production-ready systems.
           </p>
           
           <div className="flex flex-col sm:flex-row gap-4 justify-center items-center mb-16">
