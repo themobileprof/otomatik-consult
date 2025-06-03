@@ -20,7 +20,7 @@ interface GoogleSignInProps {
 }
 
 const GoogleSignIn: React.FC<GoogleSignInProps> = ({ className }) => {
-  const { handleGoogleSignIn } = useAuth();
+  const { signIn } = useAuth();
 
   useEffect(() => {
     const initializeGoogleSignIn = () => {
@@ -29,7 +29,7 @@ const GoogleSignIn: React.FC<GoogleSignInProps> = ({ className }) => {
       window.google.accounts.id.initialize({
         client_id: import.meta.env.VITE_GOOGLE_CLIENT_ID,
         callback: (response: any) => {
-          handleGoogleSignIn(response.credential);
+          signIn(response.credential);
         },
       });
 
@@ -55,7 +55,7 @@ const GoogleSignIn: React.FC<GoogleSignInProps> = ({ className }) => {
     return () => {
       document.body.removeChild(script);
     };
-  }, [handleGoogleSignIn]);
+  }, [signIn]);
 
   return <div id="google-signin" className={className} />;
 };

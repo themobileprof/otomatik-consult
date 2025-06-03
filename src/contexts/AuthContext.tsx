@@ -1,65 +1,85 @@
 import React, { createContext, useContext, useEffect, useState } from 'react';
-import { User, api } from '@/lib/api';
+import { api } from '@/lib/api';
+
+interface User {
+  email: string;
+  name: string;
+  picture?: string;
+  role: 'user' | 'admin';
+  sub: string;
+}
 
 interface AuthContextType {
   user: User | null;
   isLoading: boolean;
-  error: string | null;
-  handleGoogleSignIn: (credential: string) => Promise<void>;
-  logout: () => void;
+  signIn: (credential: string) => Promise<void>;
+  signOut: () => Promise<void>;
+  isAdmin: () => boolean;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
-export function AuthProvider({ children }: { children: React.ReactNode }) {
+export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({
+  children,
+}) => {
   const [user, setUser] = useState<User | null>(null);
   const [isLoading, setIsLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     const token = localStorage.getItem('auth_token');
-    if (token) {
-      // TODO: Implement token validation/refresh if needed
-      const userData = localStorage.getItem('user_data');
-      if (userData) {
-        setUser(JSON.parse(userData));
-      }
+    const storedUser = localStorage.getItem('user');
+    
+    if (token && storedUser) {
+      api.setToken(token);
+      setUser(JSON.parse(storedUser));
     }
+    
     setIsLoading(false);
   }, []);
 
-  const handleGoogleSignIn = async (credential: string) => {
+  const signIn = async (credential: string) => {
     try {
-      setIsLoading(true);
-      setError(null);
       const { token, user } = await api.googleSignIn(credential);
       localStorage.setItem('auth_token', token);
-      localStorage.setItem('user_data', JSON.stringify(user));
+      localStorage.setItem('user', JSON.stringify(user));
+      api.setToken(token);
       setUser(user);
-    } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to sign in');
-    } finally {
-      setIsLoading(false);
+    } catch (error) {
+      console.error('Sign in error:', error);
+      throw error;
     }
   };
 
-  const logout = () => {
+  const signOut = async () => {
     localStorage.removeItem('auth_token');
-    localStorage.removeItem('user_data');
+    localStorage.removeItem('user');
+    api.setToken('');
     setUser(null);
   };
 
+  const isAdmin = () => {
+    return user?.role === 'admin';
+  };
+
   return (
-    <AuthContext.Provider value={{ user, isLoading, error, handleGoogleSignIn, logout }}>
+    <AuthContext.Provider
+      value={{
+        user,
+        isLoading,
+        signIn,
+        signOut,
+        isAdmin,
+      }}
+    >
       {children}
     </AuthContext.Provider>
   );
-}
+};
 
-export function useAuth() {
+export const useAuth = () => {
   const context = useContext(AuthContext);
   if (context === undefined) {
     throw new Error('useAuth must be used within an AuthProvider');
   }
   return context;
-} 
+}; 

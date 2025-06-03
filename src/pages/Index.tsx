@@ -13,10 +13,8 @@ const Index = () => {
     <Layout>
       <div className="min-h-screen bg-gradient-to-br from-slate-50 to-blue-50">
         <Hero />
-        <HowItWorks />
-        <Services />
         <Booking />
-        {/* <Testimonials /> */}
+        <Services />
         <FAQ />
         <Footer />
       </div>

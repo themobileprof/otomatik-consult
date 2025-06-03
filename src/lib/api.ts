@@ -1,4 +1,5 @@
 import { z } from 'zod';
+import axios from 'axios';
 
 const BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:3000';
 
@@ -39,92 +40,122 @@ export interface AvailabilityResponse {
 
 // API Client
 class ApiClient {
-  private async request<T>(endpoint: string, options: RequestInit = {}): Promise<T> {
-    const token = localStorage.getItem('auth_token');
-    const headers: HeadersInit = {
+  private token: string | null = null;
+
+  setToken(token: string) {
+    this.token = token;
+  }
+
+  private getHeaders() {
+    return {
       'Content-Type': 'application/json',
-      ...(token ? { Authorization: `Bearer ${token}` } : {}),
-      ...options.headers,
+      ...(this.token ? { Authorization: `Bearer ${this.token}` } : {}),
     };
-
-    const response = await fetch(`${BASE_URL}${endpoint}`, {
-      ...options,
-      headers,
-    });
-
-    if (!response.ok) {
-      const error = await response.json().catch(() => ({ error: 'An error occurred' }));
-      throw new Error(error.error || 'An error occurred');
-    }
-
-    return response.json();
   }
 
   // Auth
   async googleSignIn(credential: string): Promise<{ token: string; user: User }> {
-    return this.request('/api/auth/google', {
-      method: 'POST',
-      body: JSON.stringify({ credential }),
+    const response = await axios.post(`${BASE_URL}/api/auth/google`, { credential }, {
+      headers: this.getHeaders(),
     });
+    return response.data;
   }
 
-  // Bookings
-  async createBooking(booking: {
-    date: string;
-    time: string;
-    endTime?: string;
-    type: BookingType;
-    email: string;
-  }): Promise<{ message: string; booking: Booking }> {
-    return this.request('/api/bookings', {
-      method: 'POST',
-      body: JSON.stringify(booking),
+  // Booking Endpoints
+  async createBooking(data: any) {
+    const response = await axios.post(`${BASE_URL}/api/bookings`, data, {
+      headers: this.getHeaders(),
     });
+    return response.data;
   }
 
-  async getBookings(): Promise<Booking[]> {
-    return this.request('/api/bookings');
-  }
-
-  async getAvailability(): Promise<AvailabilityResponse> {
-    return this.request('/api/bookings/availability');
-  }
-
-  // Payments
-  async initiatePayment(data: {
-    amount: string;
-    email: string;
-    name: string;
-    tx_ref: string;
-    redirect_url: string;
-    booking_data?: {
-      date: string;
-      time: string;
-      endTime: string;
-      type: BookingType;
-      email: string;
-    };
-  }): Promise<{ status: string; message: string; data: { link: string } }> {
-    return this.request('/api/payment/flutterwave/initiate', {
-      method: 'POST',
-      body: JSON.stringify(data),
+  async getBookings() {
+    const response = await axios.get(`${BASE_URL}/api/bookings`, {
+      headers: this.getHeaders(),
     });
+    return response.data;
   }
 
-  async verifyPayment(transactionId: string, bookingData?: {
-    date: string;
-    time: string;
-    endTime: string;
-    type: BookingType;
-    email: string;
-  }): Promise<{ status: string; message: string; data: any }> {
-    return this.request('/api/payment/flutterwave/verify', {
-      method: 'POST',
-      body: JSON.stringify({ 
+  async getAvailability() {
+    const response = await axios.get(`${BASE_URL}/api/bookings/availability`, {
+      headers: this.getHeaders(),
+    });
+    return response.data;
+  }
+
+  // Payment Endpoints
+  async initiatePayment(data: any) {
+    const response = await axios.post(
+      `${BASE_URL}/api/payment/flutterwave/initiate`,
+      data,
+      {
+        headers: this.getHeaders(),
+      }
+    );
+    return response.data;
+  }
+
+  async verifyPayment(transactionId: string, bookingData: any) {
+    const response = await axios.post(
+      `${BASE_URL}/api/payment/flutterwave/verify`,
+      {
         transaction_id: transactionId,
-        booking_data: bookingData
-      }),
+        booking_data: bookingData,
+      },
+      {
+        headers: this.getHeaders(),
+      }
+    );
+    return response.data;
+  }
+
+  // Admin Endpoints
+  async getUsers() {
+    const response = await axios.get(`${BASE_URL}/api/admin/users`, {
+      headers: this.getHeaders(),
     });
+    return response.data;
+  }
+
+  async updateUserRole(userId: number, role: 'user' | 'admin') {
+    const response = await axios.patch(
+      `${BASE_URL}/api/admin/users/${userId}/role`,
+      { role },
+      {
+        headers: this.getHeaders(),
+      }
+    );
+    return response.data;
+  }
+
+  async getSettings() {
+    const response = await axios.get(`${BASE_URL}/api/admin/settings`, {
+      headers: this.getHeaders(),
+    });
+    return response.data;
+  }
+
+  async updateSettings(data: {
+    workDays: number[];
+    workStart: number;
+    workEnd: number;
+    bufferMinutes: number;
+  }) {
+    const response = await axios.patch(
+      `${BASE_URL}/api/admin/settings`,
+      data,
+      {
+        headers: this.getHeaders(),
+      }
+    );
+    return response.data;
+  }
+
+  async getStats() {
+    const response = await axios.get(`${BASE_URL}/api/admin/stats`, {
+      headers: this.getHeaders(),
+    });
+    return response.data;
   }
 }
 

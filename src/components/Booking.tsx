@@ -96,13 +96,15 @@ const Booking = () => {
   };
 
   const getAvailableEndTimes = () => {
-    if (!selectedTime || bookingType === 'free') return [];
+    if (!selectedTime || bookingType === 'free' || !selectedDate) return [];
     
     const startIndex = paidTimeSlots.indexOf(selectedTime);
     if (startIndex === -1) return [];
     
-    // Return all times after the selected start time
-    return paidTimeSlots.slice(startIndex + 1);
+    // Return all times after the selected start time that are available
+    return paidTimeSlots.slice(startIndex + 1).filter(time => 
+      isTimeSlotAvailable(selectedDate, time)
+    );
   };
 
   const calculateDuration = () => {
@@ -222,14 +224,43 @@ const Booking = () => {
   };
 
   const isTimeSlotAvailable = (date: Date, time: string) => {
-    if (!availability) return true;
+    if (!availability || !selectedDate) return true;
+    
     const dateStr = format(date, 'yyyy-MM-dd');
     const unavailableSlots = availability.unavailable[dateStr] || [];
-    const timeHour = parseInt(time.split(':')[0]);
     
-    return !unavailableSlots.some(slot => 
-      timeHour >= slot.from && timeHour < slot.to
-    );
+    // Convert time string to hour number (24-hour format)
+    const [timeStr, period] = time.split(' ');
+    const [hours, minutes] = timeStr.split(':').map(Number);
+    let hour24 = hours;
+    if (period === 'PM' && hours !== 12) hour24 += 12;
+    if (period === 'AM' && hours === 12) hour24 = 0;
+    
+    // For paid bookings, check if any hour in the range is unavailable
+    if (bookingType === 'paid' && selectedEndTime) {
+      const [endTimeStr, endPeriod] = selectedEndTime.split(' ');
+      const [endHours, endMinutes] = endTimeStr.split(':').map(Number);
+      let endHour24 = endHours;
+      if (endPeriod === 'PM' && endHours !== 12) endHour24 += 12;
+      if (endPeriod === 'AM' && endHours === 12) endHour24 = 0;
+
+      // Check if any hour in the range is unavailable
+      for (let h = hour24; h <= endHour24; h++) {
+        if (unavailableSlots.some(slot => h >= slot.from && h < slot.to)) {
+          return false;
+        }
+      }
+      return true;
+    }
+
+    // For free bookings (30-minute slots)
+    const slotEnd = minutes === 30 ? hour24 + 1 : hour24 + 0.5;
+    return !unavailableSlots.some(slot => {
+      // Check if either the start or end of the 30-minute slot overlaps with an unavailable slot
+      const slotStart = hour24;
+      return (slotStart >= slot.from && slotStart < slot.to) || 
+             (slotEnd > slot.from && slotEnd <= slot.to);
+    });
   };
 
   return (
@@ -240,7 +271,7 @@ const Booking = () => {
             Book Your Session
           </h2>
           <p className="text-xl text-slate-600 max-w-2xl mx-auto">
-            Choose the consulting option that fits your needs
+            Choose between a free 30-minute consultation or schedule paid expert sessions
           </p>
         </div>
         
@@ -250,8 +281,8 @@ const Booking = () => {
               <TabsTrigger value="free" className="text-lg font-semibold rounded-xl data-[state=active]:bg-white data-[state=active]:shadow-md">
                 Free Consultation
               </TabsTrigger>
-              <TabsTrigger value="paid" className="text-lg font-semibold rounded-xl data-[state=active]:bg-white data-[state=active]:shadow-md">
-                Paid Sessions
+              <TabsTrigger value="paid" className="text-lg text-blue-600 font-semibold rounded-xl data-[state=active]:bg-white data-[state=active]:shadow-md">
+                Expert Sessions
               </TabsTrigger>
             </TabsList>
             

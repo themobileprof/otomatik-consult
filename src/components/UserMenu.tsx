@@ -11,7 +11,7 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import GoogleSignIn from './GoogleSignIn';
 
 const UserMenu = () => {
-  const { user, logout } = useAuth();
+  const { user, signOut } = useAuth();
 
   if (!user) {
     return (
@@ -40,7 +40,7 @@ const UserMenu = () => {
         </div>
         <DropdownMenuItem
           className="cursor-pointer text-red-600 focus:text-red-600 focus:bg-red-50"
-          onClick={logout}
+          onClick={signOut}
         >
           Log out
         </DropdownMenuItem>
