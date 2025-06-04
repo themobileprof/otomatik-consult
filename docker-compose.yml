@@ -1,0 +1,19 @@
+version: '3.8'
+
+services:
+  # Production service
+  app:
+    image: ${DOCKERHUB_USERNAME}/otomatik-frontend:${IMAGE_TAG:-latest}
+    ports:
+      - "3000:3000"
+    environment:
+      - NODE_ENV=production
+      - VITE_API_URL=${VITE_API_URL:-http://localhost:4000}
+      - VITE_GOOGLE_CLIENT_ID=${VITE_GOOGLE_CLIENT_ID}
+    restart: unless-stopped
+    networks:
+      - otomatik-network
+
+networks:
+  otomatik-network:
+    external: true 
